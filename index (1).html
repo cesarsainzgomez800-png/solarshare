@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B2545">
+<title>SolarShare · La energía nos une</title>
+<style>
+:root{
+  --navy:#0B2545;--navy2:#13315C;--sun:#FFB703;--sund:#FB8500;
+  --teal:#1B998B;--teald:#137a6f;--bg:#F6F3EA;--card:#fff;--ink:#1D2B3A;
+  --muted:#6A7683;--line:#E8E1D0;--ok:#2E9E5B;--danger:#D64545;
+  --r:18px;--sh:0 6px 20px rgba(11,37,69,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.45;
+  background:linear-gradient(160deg,#0B2545,#13315C 55%,#1b4a7a);display:flex;justify-content:center;align-items:center}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font:inherit}
+h1,h2,h3,h4{color:var(--navy);line-height:1.2}
+
+/* ---------- Marco de la app ---------- */
+#app{position:relative;width:100%;max-width:440px;height:100%;max-height:900px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column}
+@media(min-width:520px){#app{height:min(900px,96vh);border-radius:34px;box-shadow:0 30px 80px rgba(0,0,0,.45)}}
+.screen{display:none;flex:1;min-height:0;flex-direction:column}
+.screen.active{display:flex}
+
+/* ---------- Botones y formularios ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:14px;font-weight:700;transition:.15s transform,.15s opacity}
+.btn:active{transform:scale(.97)}
+.btn-sun{background:linear-gradient(135deg,var(--sun),var(--sund));color:#2b1800;box-shadow:0 6px 16px rgba(251,133,0,.3)}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-navy{background:var(--navy);color:#fff}
+.btn-line{background:#fff;border:1.5px solid var(--line);color:var(--navy)}
+.btn-block{width:100%}
+.btn-sm{padding:8px 14px;font-size:.86rem;border-radius:11px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+label{display:block;font-weight:600;font-size:.84rem;margin:14px 0 5px;color:var(--navy)}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:12px;background:#fff}
+input:focus,select:focus{outline:none;border-color:var(--teal)}
+input[type=range]{width:100%;accent-color:var(--sund)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;font-weight:600}
+.switch input{appearance:none;flex:none;width:50px;height:28px;border-radius:99px;background:#cfd6dc;position:relative;cursor:pointer;transition:.2s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked{background:var(--teal)}
+.switch input:checked::after{left:25px}
+
+/* ---------- Onboarding ---------- */
+#onboard{background:linear-gradient(170deg,var(--navy) 0%,var(--navy2) 70%,#1b4a7a);color:#fff;padding:30px 24px;overflow-y:auto}
+#onboard h1,#onboard h2,#onboard h3{color:#fff}
+.ob-logo{display:flex;flex-direction:column;align-items:center;text-align:center;margin:auto 0 10px}
+.ob-logo h1{font-size:2.4rem;margin-top:10px}
+.ob-logo h1 span{color:var(--sun)}
+.ob-logo p{font-size:1.15rem;opacity:.9;font-weight:300;margin-top:6px}
+.ob-logo p b{color:var(--sun);font-weight:700}
+.sunspin{animation:spin 30s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ob-card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:var(--r);padding:20px;margin-top:20px}
+.role-pick{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.role-pick button{background:rgba(255,255,255,.1);border:2px solid transparent;border-radius:16px;padding:16px 10px;text-align:center;color:#fff;transition:.15s}
+.role-pick button b{display:block;font-size:2rem;margin-bottom:4px}
+.role-pick button small{display:block;opacity:.75;font-size:.76rem;line-height:1.25;margin-top:3px}
+.role-pick button.on{border-color:var(--sun);background:rgba(255,183,3,.18)}
+#onboard label{color:#fff;opacity:.9}
+#onboard input{border-color:transparent}
+.ob-row{display:flex;gap:10px}
+.ob-row .btn{flex:none}
+.scan{background:rgba(255,255,255,.15);color:#fff;white-space:nowrap}
+
+/* ---------- Cabecera ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 10px}
+.top small{color:var(--muted);font-weight:600}
+.top h2{font-size:1.35rem}
+.bell{position:relative;width:44px;height:44px;border-radius:14px;background:#fff;box-shadow:var(--sh);font-size:1.25rem}
+.bell i{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;border-radius:99px;background:var(--danger);color:#fff;font-size:.68rem;font-style:normal;font-weight:700;display:grid;place-items:center;padding:0 5px}
+
+/* ---------- Vistas ---------- */
+#views{flex:1;min-height:0;overflow-y:auto;padding:4px 18px 24px}
+.view{display:none}
+.view.active{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--sh);margin-bottom:14px}
+.card h4{font-size:1rem;margin-bottom:8px}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:20px 2px 10px}
+.sec h3{font-size:1.05rem}
+.sec a{color:var(--teald);font-weight:700;font-size:.85rem;cursor:pointer}
+.hero{background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;border-radius:22px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,183,3,.55),transparent 70%)}
+.hero small{opacity:.8;font-weight:600}
+.hero .big{font-size:2.6rem;font-weight:800;color:var(--sun);line-height:1.1;margin:4px 0}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#7ee2a8}
+.live i{width:8px;height:8px;border-radius:50%;background:#7ee2a8;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.bar{height:10px;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden;margin-top:12px}
+.bar div{height:100%;background:linear-gradient(90deg,var(--sun),var(--sund));border-radius:99px;transition:width .6s}
+.hero .cap{display:flex;justify-content:space-between;font-size:.78rem;opacity:.85;margin-top:6px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.stat{background:#fff;border-radius:16px;padding:14px;box-shadow:var(--sh)}
+.stat span{font-size:.76rem;color:var(--muted);font-weight:600}
+.stat strong{display:block;font-size:1.35rem;color:var(--navy);margin-top:1px}
+.stat small{font-size:.74rem;color:var(--ok);font-weight:700}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1.5px solid transparent;border-radius:14px;padding:12px 13px;box-shadow:var(--sh)}
+.item.sel{border-color:var(--sund)}
+.item h5{font-size:.94rem;color:var(--navy)}
+.item small{color:var(--muted);font-size:.78rem}
+.price{text-align:right;font-weight:800;color:var(--navy);font-size:.92rem;white-space:nowrap}
+.price small{display:block;color:var(--ok);font-weight:700}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;padding:2px 9px;border-radius:99px;background:#E3F5F2;color:var(--teald)}
+.tag.sun{background:#FFF1CC;color:#9a5a00}
+.empty{background:#fff;border:2px dashed var(--line);border-radius:16px;padding:22px 16px;text-align:center;color:var(--muted)}
+.empty b{display:block;font-size:2rem;margin-bottom:4px}
+.empty .btn{margin-top:12px}
+.note{font-size:.78rem;color:var(--muted);margin-top:8px}
+
+/* Mapa */
+#map{width:100%;border-radius:18px;background:#EAF3EF;box-shadow:var(--sh);display:block;margin-bottom:14px}
+#map .blk{fill:#DCE8E1}
+#map .rad{fill:rgba(27,153,139,.09);stroke:var(--teal);stroke-width:2;stroke-dasharray:7 6}
+#map .mk{cursor:pointer}
+#map .mk circle{fill:var(--sun);stroke:#fff;stroke-width:3}
+#map .mk.sel circle{fill:var(--sund);stroke:var(--navy)}
+#map .mk.mine circle{fill:var(--teal)}
+#map .mk text{font-size:15px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+
+/* Batería */
+.batt{display:flex;align-items:center;gap:18px}
+.shell{width:112px;height:56px;border:4px solid var(--navy);border-radius:11px;position:relative;padding:4px;flex:none}
+.shell::after{content:"";position:absolute;right:-12px;top:15px;width:8px;height:18px;background:var(--navy);border-radius:0 4px 4px 0}
+.fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--sun),var(--sund));transition:width .6s}
+.big{font-size:2rem;font-weight:800;color:var(--navy)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.progress{height:12px;background:#EFE9D8;border-radius:99px;overflow:hidden}
+.progress div{height:100%;background:linear-gradient(90deg,var(--teal),#53d3c4);transition:width .6s}
+
+/* Tab bar */
+#tabbar{display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 6px calc(8px + env(safe-area-inset-bottom))}
+#tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0;color:var(--muted);font-size:.7rem;font-weight:700;border-radius:12px}
+#tabbar button b{font-size:1.35rem;filter:grayscale(1);opacity:.65}
+#tabbar button.on{color:var(--navy)}
+#tabbar button.on b{filter:none;opacity:1}
+
+/* Perfil */
+.avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--sun),var(--sund));display:grid;place-items:center;font-size:1.7rem;font-weight:800;color:#2b1800}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+.kv:last-child{border:none}
+.kv span{color:var(--muted)}
+.kv b{color:var(--navy);text-align:right;word-break:break-all}
+
+/* Sheet */
+#sheet{position:absolute;inset:0;background:rgba(11,37,69,.5);display:none;align-items:flex-end;z-index:30}
+#sheet.open{display:flex;animation:fadebg .2s}
+@keyframes fadebg{from{opacity:0}}
+.sheet-body{background:var(--bg);width:100%;max-height:92%;overflow-y:auto;border-radius:26px 26px 0 0;padding:10px 20px 26px;animation:up .28s}
+@keyframes up{from{transform:translateY(60px);opacity:0}}
+.grab{width:44px;height:5px;border-radius:9px;background:#cfc8b4;margin:0 auto 14px}
+.sheet-body h3{font-size:1.25rem;margin-bottom:4px}
+.result{margin-top:14px;padding:13px;border-radius:12px;background:#EAF6F4;border:1px solid #cfe8e4;font-size:.9rem}
+.result ul{margin:6px 0 0 18px}
+.steps{display:flex;gap:8px;margin:14px 0}
+.steps i{flex:1;height:6px;border-radius:9px;background:#e3dcc8}
+.steps i.on{background:var(--sund)}
+.steps i.done{background:var(--teal)}
+.qr{width:104px;height:104px;border-radius:10px;border:2px solid var(--navy);display:grid;grid-template-columns:repeat(10,1fr);padding:6px;gap:1px;background:#fff;flex:none}
+.qr i{background:var(--navy);border-radius:1px}
+.qr i.o{background:transparent}
+.nitem{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.nitem:last-child{border:none}
+.nitem b.ic{font-size:1.4rem}
+.nitem p{font-size:.9rem}
+.nitem small{color:var(--muted)}
+.nitem.unread p{font-weight:700}
+
+#toast{position:absolute;left:50%;bottom:90px;transform:translate(-50%,40px);opacity:0;background:var(--navy);color:#fff;padding:12px 18px;border-radius:99px;font-weight:600;font-size:.88rem;box-shadow:0 10px 26px rgba(0,0,0,.3);transition:.3s;z-index:50;max-width:88%;text-align:center;pointer-events:none}
+#toast.show{transform:translate(-50%,0);opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ BIENVENIDA / REGISTRO ============ -->
+  <section id="onboard" class="screen">
+    <div class="ob-logo">
+      <svg class="sunspin" width="84" height="84" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="9" fill="#FFB703"/><g stroke="#FFB703" stroke-width="3" stroke-linecap="round"><path d="M20 3v5M20 32v5M3 20h5M32 20h5M8 8l3.5 3.5M28.5 28.5L32 32M8 32l3.5-3.5M28.5 11.5L32 8"/></g></svg>
+      <h1>Solar<span>Share</span></h1>
+      <p>“<b>La energía nos une</b>”</p>
+    </div>
+    <div class="ob-card">
+      <h3 style="font-size:1.05rem">¿Cómo vas a usar SolarShare?</h3>
+      <div class="role-pick" id="rolePick">
+        <button data-role="consumidor" class="on"><b>🏠</b>Soy familia<small>Quiero energía solar de mi barrio, sin placas</small></button>
+        <button data-role="productor"><b>☀️</b>Tengo placas<small>Quiero compartir mis excedentes con vecinos</small></button>
+      </div>
+      <label for="obName">Tu nombre o el de tu comunidad</label>
+      <input type="text" id="obName" placeholder="Ej. Lucía / Urb. Los Almendros" maxlength="40" autocomplete="off">
+      <label for="obCups">Dirección o CUPS de tu contador inteligente</label>
+      <div class="ob-row">
+        <input type="text" id="obCups" placeholder="C/ Girasol 12 · ES0021…" maxlength="60" autocomplete="off">
+        <button class="btn scan" id="obScan" type="button">📷 QR</button>
+      </div>
+      <button class="btn btn-sun btn-block" id="obGo" style="margin-top:22px">Entrar a mi barrio →</button>
+      <p style="font-size:.74rem;opacity:.7;text-align:center;margin-top:12px">Prototipo con datos simulados · sin cortes de luz ni papeleo</p>
+    </div>
+  </section>
+
+  <!-- ============ APP ============ -->
+  <section id="main" class="screen">
+    <div class="top">
+      <div><small id="hiSmall">Hola</small><h2 id="hiName">—</h2></div>
+      <button class="bell" id="bellBtn" aria-label="Notificaciones">🔔<i id="bellN" hidden>0</i></button>
+    </div>
+
+    <div id="views">
+      <div class="view active" id="v-home"></div>
+      <div class="view" id="v-map"></div>
+      <div class="view" id="v-batt"></div>
+      <div class="view" id="v-comm"></div>
+      <div class="view" id="v-me"></div>
+    </div>
+
+    <nav id="tabbar">
+      <button data-tab="home" class="on"><b>🏠</b>Inicio</button>
+      <button data-tab="map"><b>🗺️</b>Mapa</button>
+      <button data-tab="batt"><b>🔋</b>Batería</button>
+      <button data-tab="comm"><b>🤝</b>Barrio</button>
+      <button data-tab="me"><b>👤</b>Perfil</button>
+    </nav>
+  </section>
+
+  <div id="sheet"><div class="sheet-body" id="sheetBody"></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ================= Constantes ================= */
+  var KEY = 'solarshare_app_v2';
+  var MARKET = 0.18;        // €/kWh mercado convencional (ilustrativo)
+  var CO2 = 0.25;           // kg CO2/kWh (ilustrativo)
+  var USE = 280;            // consumo medio mensual de una familia (kWh)
+  var KM = 75;              // px por km en el mapa (radio 2 km = 150 px)
+  var COMMISSION = 0.08;
+
+  var $ = function(s, r){ return (r || document).querySelector(s); };
+  var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var fmt = function(n, d){ d = d == null ? 2 : d; return Number(n).toLocaleString('es-ES', {minimumFractionDigits: d, maximumFractionDigits: d}); };
+  var eur = function(n){ return fmt(n, 2) + ' €'; };
+  var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+
+  /* ================= Estado ================= */
+  function fresh(){
+    return {
+      user: null,                    // {name, role, address}
+      offers: [
+        {id:'o1', name:'Urbanización Los Almendros', kwh:420, price:0.12, x:262, y:150},
+        {id:'o2', name:'Residencial Sol Naciente',   kwh:300, price:0.13, x:120, y:262},
+        {id:'o3', name:'Comunidad La Vega',          kwh:210, price:0.11, x:215, y:308},
+        {id:'o4', name:'Edificio Mirador',           kwh:150, price:0.14, x:168, y:118},
+        {id:'o5', name:'Chalets del Parque',         kwh:380, price:0.125,x:304, y:262}
+      ],
+      contracts: [],                 // {offerId, name, kwh, price}
+      battery: {eur:0, kwh:0},
+      history: [],
+      vacation: false,
+      fund: 1250,
+      myDonated: 0,
+      waiting: 7,                    // familias en lista de espera del barrio
+      sharedKwh: 860,                // kWh compartidos este mes (productor)
+      notifs: [{id:1, ic:'👋', t:'Bienvenido a SolarShare: tu barrio ya comparte energía.', time:'ahora', read:false}],
+      feed: [
+        {ic:'☀️', t:'Chalets del Parque ha publicado 380 kWh', time:'hace 12 min'},
+        {ic:'🏠', t:'Una familia de tu barrio ha alquilado 60 kWh', time:'hace 1 h'},
+        {ic:'💚', t:'Los vecinos han donado 35 € al fondo solidario', time:'hoy'}
+      ],
+      dayKwh: 0
+    };
+  }
+  var S = load() || fresh();
+
+  function load(){
+    try{ var r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+  }
+
+  /* ================= Utilidades ================= */
+  function toast(msg){
+    var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+  function isProd(){ return S.user && S.user.role === 'productor'; }
+  function offerById(id){ return S.offers.filter(function(o){ return o.id === id; })[0]; }
+  function dist(o){ var dx = o.x - 200, dy = o.y - 200; return Math.sqrt(dx*dx + dy*dy) / KM; }
+  function contracted(){ return S.contracts.reduce(function(a,c){ return a + c.kwh; }, 0); }
+  function monthSave(){ return S.contracts.reduce(function(a,c){ return a + c.kwh * (MARKET - c.price); }, 0); }
+  function notify(ic, t){
+    S.notifs.unshift({id:Date.now() + Math.random(), ic:ic, t:t, time:'ahora', read:false});
+    if (S.notifs.length > 25) S.notifs.pop();
+  }
+  function addHist(t, v){ S.history.unshift({t:t, v:v}); if (S.history.length > 10) S.history.pop(); }
+  function solar(h){ if (h < 6.5 || h > 20) return 0; return Math.sin(Math.PI * (h - 6.5) / 13.5); }
+  function cons(h){ return 0.28 + 0.34*Math.exp(-Math.pow(h-8,2)/4) + 0.5*Math.exp(-Math.pow(h-21,2)/6) + 0.18*Math.exp(-Math.pow(h-14,2)/8); }
+  function nowH(){ var d = new Date(); return d.getHours() + d.getMinutes()/60; }
+
+  function chartSvg(){
+    var W = 340, H = 130, pl = 6, pr = 6, pt = 8, pb = 20, iw = W-pl-pr, ih = H-pt-pb, bw = iw/24, o = '', pts = [];
+    for (var h = 0; h < 24; h++){
+      var bh = ih * solar(h + .5);
+      o += '<rect x="'+(pl+h*bw+1.5)+'" y="'+(pt+ih-bh)+'" width="'+(bw-3)+'" height="'+bh+'" rx="2.5" fill="#FFB703" opacity=".92"/>';
+      pts.push((pl+h*bw+bw/2) + ',' + (pt+ih-ih*Math.min(1,cons(h+.5))));
+      if (h % 6 === 0) o += '<text x="'+(pl+h*bw+bw/2)+'" y="'+(H-5)+'" font-size="9" fill="#6A7683" text-anchor="middle">'+h+'h</text>';
+    }
+    o += '<polyline points="'+pts.join(' ')+'" fill="none" stroke="#13315C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    var x = pl + nowH()*bw;
+    o += '<line x1="'+x+'" x2="'+x+'" y1="'+pt+'" y2="'+(pt+ih)+'" stroke="#1B998B" stroke-width="2" stroke-dasharray="4 3"/>';
+    return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" role="img" aria-label="Producción solar y consumo del barrio en 24 horas">'+o+'</svg>' +
+      '<div style="display:flex;gap:14px;font-size:.74rem;color:var(--muted);margin-top:4px;flex-wrap:wrap"><span>🟨 Producción solar</span><span>🟦 Consumo barrio</span><span>🟩 Ahora</span></div>';
+  }
+
+  /* ================= Navegación ================= */
+  function showScreen(id){ $$('.screen').forEach(function(s){ s.classList.toggle('active', s.id === id); }); }
+  function showTab(t){
+    $$('#tabbar button').forEach(function(b){ b.classList.toggle('on', b.dataset.tab === t); });
+    $$('.view').forEach(function(v){ v.classList.toggle('active', v.id === 'v-' + t); });
+    $('#views').scrollTop = 0;
+  }
+  function openSheet(html){ $('#sheetBody').innerHTML = '<div class="grab"></div>' + html; $('#sheet').classList.add('open'); $('#sheetBody').scrollTop = 0; }
+  function closeSheet(){ $('#sheet').classList.remove('open'); }
+  $('#sheet').addEventListener('click', function(e){ if (e.target.id === 'sheet') closeSheet(); });
+  $$('#tabbar button').forEach(function(b){ b.addEventListener('click', function(){ showTab(b.dataset.tab); }); });
+
+  /* ================= Onboarding ================= */
+  var obRole = 'consumidor';
+  $('#rolePick').addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    obRole = b.dataset.role;
+    $$('#rolePick button').forEach(function(x){ x.classList.toggle('on', x === b); });
+  });
+  $('#obScan').addEventListener('click', function(){
+    var n = String(Math.floor(1000 + Math.random()*9000)), m = String(Math.floor(1000 + Math.random()*9000));
+    $('#obCups').value = 'ES0021 0000 ' + n + ' ' + m + ' AB';
+    toast('📷 Contador detectado');
+  });
+  $('#obGo').addEventListener('click', function(){
+    var name = $('#obName').value.trim(), addr = $('#obCups').value.trim();
+    if (!name){ toast('Escribe tu nombre'); $('#obName').focus(); return; }
+    if (!addr){ toast('Indica tu dirección o el CUPS (o pulsa QR)'); $('#obCups').focus(); return; }
+    S = fresh();
+    S.user = {name:name, role:obRole, address:addr};
+    if (obRole === 'productor'){
+      S.battery = {eur:38.40, kwh:214};
+      S.history = [{t:'Excedente registrado (vacaciones)', v:12.6},{t:'Descuento aplicado en factura', v:-8},{t:'Excedente registrado', v:6.4}];
+    }
+    save(); enter();
+  });
+
+  function enter(){
+    showScreen('main');
+    renderAll(); showTab('home');
+  }
+
+  /* ================= Render ================= */
+  function renderHeader(){
+    $('#hiSmall').textContent = isProd() ? 'Panel de productor' : 'Hola de nuevo';
+    $('#hiName').textContent = S.user.name;
+    var n = S.notifs.filter(function(x){ return !x.read; }).length, b = $('#bellN');
+    b.hidden = !n; b.textContent = n;
+  }
+
+  function renderHome(){
+    var h = '';
+    if (!isProd()){
+      var k = contracted(), cover = Math.min(100, k / USE * 100);
+      h += '<div class="hero"><small>Energía de tu barrio ahora mismo</small>' +
+        '<div class="big" id="liveKw">0,00 kW</div><span class="live"><i></i>en directo · <span id="liveNote"></span></span>' +
+        '<div class="bar"><div style="width:'+cover+'%"></div></div>' +
+        '<div class="cap"><span>'+fmt(k,0)+' kWh contratados/mes</span><span>cubres el '+fmt(cover,0)+'% de tu consumo</span></div></div>';
+      h += '<div class="stats">' +
+        '<div class="stat"><span>Ahorro este mes</span><strong>'+eur(monthSave())+'</strong><small>'+(k ? '−'+fmt(monthSave()/(k*MARKET)*100,0)+'% vs mercado' : 'sin contratos aún')+'</small></div>' +
+        '<div class="stat"><span>CO₂ evitado</span><strong>'+fmt(k*CO2,0)+' kg</strong><small>huella de carbono</small></div>' +
+        '<div class="stat"><span>Hoy has usado</span><strong id="dayKwh">'+fmt(S.dayKwh,2)+' kWh</strong><small>energía limpia local</small></div>' +
+        '<div class="stat"><span>Ahorro de hoy</span><strong id="daySave">0,00 €</strong><small>precio ref. '+fmt(MARKET,2)+' €/kWh</small></div></div>';
+      h += '<div class="card"><h4>Hoy en tu barrio</h4>'+chartSvg()+'</div>';
+      h += '<div class="sec"><h3>Tu energía alquilada</h3><a data-act="goto" data-to="map">+ Añadir</a></div>';
+      if (!S.contracts.length){
+        h += '<div class="empty"><b>🔌</b>Aún no tienes energía de tu barrio.<br>Alquila una cuota a un vecino con placas, a menos de 2 km.<br><button class="btn btn-sun btn-sm" data-act="goto" data-to="map">Ver ofertas cercanas</button></div>';
+      } else {
+        h += '<div class="list">' + S.contracts.map(function(c){
+          return '<div class="item"><div><h5>'+esc(c.name)+'</h5><small>'+c.kwh+' kWh/mes</small></div>' +
+            '<div style="display:flex;align-items:center;gap:10px"><div class="price">'+fmt(c.price,3)+' €/kWh<small>−'+fmt((MARKET-c.price)/MARKET*100,0)+'%</small></div>' +
+            '<button class="btn btn-line btn-sm" data-act="cancel" data-id="'+c.offerId+'" aria-label="Cancelar contrato">✕</button></div></div>';
+        }).join('') + '</div>';
+      }
+    } else {
+      var mine = offerById('mine'), price = mine ? mine.price : 0.12;
+      h += '<div class="hero"><small>Tu instalación aporta al barrio ahora</small>' +
+        '<div class="big" id="liveKw">0,00 kW</div><span class="live"><i></i>en directo · <span id="liveNote"></span></span>' +
+        '<div class="cap" style="margin-top:12px"><span>'+(S.vacation ? '🧳 Modo vacaciones activo' : '🏡 En casa')+'</span><span>'+(mine ? fmt(mine.kwh,0)+' kWh ofertados' : 'sin oferta publicada')+'</span></div></div>';
+      h += '<div class="stats">' +
+        '<div class="stat"><span>kWh compartidos/mes</span><strong id="pShared">'+fmt(S.sharedKwh,0)+'</strong><small>a vecinos &lt; 2 km</small></div>' +
+        '<div class="stat"><span>Ingresos netos/mes</span><strong id="pIncome">'+eur(S.sharedKwh*price*(1-COMMISSION))+'</strong><small>tras comisión del 8%</small></div>' +
+        '<div class="stat"><span>Familias beneficiadas</span><strong>'+Math.round(S.sharedKwh/60)+'</strong><small>en tu barrio</small></div>' +
+        '<div class="stat"><span>CO₂ evitado</span><strong>'+fmt(S.sharedKwh*CO2,0)+' kg</strong><small>este mes</small></div></div>';
+      h += '<div class="card"><div class="switch"><span>🧳 Modo vacaciones<br><small style="font-weight:500;color:var(--muted)">Tu energía sobrante se guarda en la Batería Virtual y se libera a vecinos</small></span><input type="checkbox" id="vacSw" '+(S.vacation ? 'checked' : '')+' aria-label="Modo vacaciones"></div></div>';
+      h += '<div class="sec"><h3>Tu oferta en el mapa</h3></div>';
+      if (mine){
+        h += '<div class="item"><div><h5>'+fmt(mine.kwh,0)+' kWh disponibles</h5><small>'+fmt(mine.price,3)+' €/kWh · −'+fmt((MARKET-mine.price)/MARKET*100,0)+'% vs mercado</small></div>' +
+          '<div style="display:flex;gap:8px"><button class="btn btn-teal btn-sm" data-act="publish">Editar</button><button class="btn btn-line btn-sm" data-act="unpublish">Retirar</button></div></div>';
+      } else {
+        h += '<div class="empty"><b>☀️</b>Aún no ofreces tu excedente.<br>Los vecinos no pueden alquilarte energía hasta que publiques una oferta.<br><button class="btn btn-sun btn-sm" data-act="publish">Publicar mi excedente</button></div>';
+      }
+      h += '<div class="card" style="margin-top:14px"><h4>Hoy en tu barrio</h4>'+chartSvg()+'</div>';
+    }
+    $('#v-home').innerHTML = h;
+  }
+
+  function renderMap(){
+    var h = '', svg = '';
+    for (var i = 0; i < 8; i++) for (var j = 0; j < 8; j++){
+      if ((i + j) % 3 === 0) continue;
+      svg += '<rect class="blk" x="'+(20+i*45)+'" y="'+(20+j*45)+'" width="34" height="34" rx="6"/>';
+    }
+    svg += '<circle class="rad" cx="200" cy="200" r="150"/><text x="200" y="38" text-anchor="middle" font-size="12" font-weight="700" fill="#137a6f">radio máx. 2 km</text>';
+    S.offers.forEach(function(o){
+      var cls = 'mk' + (selected === o.id ? ' sel' : '') + (o.id === 'mine' ? ' mine' : '');
+      svg += '<g class="'+cls+'" data-id="'+o.id+'" transform="translate('+o.x+','+o.y+')"><circle r="16"/><text>'+(o.id === 'mine' ? '🏡' : '☀️')+'</text></g>';
+    });
+    svg += '<g transform="translate(200,200)"><circle r="14" fill="#13315C" stroke="#fff" stroke-width="3"/><text text-anchor="middle" dominant-baseline="central" font-size="13">📍</text></g>' +
+      '<text x="200" y="228" text-anchor="middle" font-size="11" font-weight="700" fill="#13315C">Tú</text>';
+    h += '<svg id="map" viewBox="0 0 400 400" role="img" aria-label="Mapa de ofertas de energía a menos de 2 km">'+svg+'</svg>';
+    if (isProd()) h += '<button class="btn btn-sun btn-block" data-act="publish" style="margin-bottom:14px">☀️ '+(offerById('mine') ? 'Editar mi oferta' : 'Publicar mi excedente')+'</button>';
+    h += '<div class="sec" style="margin-top:2px"><h3>Excedentes cerca de ti</h3></div><div class="list">';
+    S.offers.slice().sort(function(a,b){ return dist(a) - dist(b); }).forEach(function(o){
+      var mine = o.id === 'mine';
+      var act = mine ? '<span class="tag">Tu oferta</span>' : (!isProd() ? '<button class="btn btn-sun btn-sm" data-act="rent" data-id="'+o.id+'"'+(o.kwh < 10 ? ' disabled' : '')+'>Alquilar</button>' : '');
+      h += '<div class="item'+(selected === o.id ? ' sel' : '')+'" data-pick="'+o.id+'"><div><h5>'+esc(o.name)+'</h5><small>'+fmt(dist(o),2)+' km · '+fmt(o.kwh,0)+' kWh libres</small></div>' +
+        '<div style="display:flex;align-items:center;gap:8px"><div class="price">'+fmt(o.price,3)+' €/kWh<small>−'+fmt((MARKET-o.price)/MARKET*100,0)+'%</small></div>'+act+'</div></div>';
+    });
+    h += '</div>';
+    $('#v-map').innerHTML = h;
+  }
+
+  function renderBatt(){
+    var b = S.battery, h = '';
+    h += '<div class="card"><h4>🔋 Tu Batería Virtual</h4><div class="batt"><div class="shell"><div class="fill" style="width:'+Math.max(4,Math.min(100,b.eur))+'%"></div></div>' +
+      '<div><div class="big">'+eur(b.eur)+'</div><small style="color:var(--muted)">'+fmt(b.kwh,1)+' kWh acumulados</small></div></div>' +
+      '<p class="note">Tu saldo está vinculado a tu cuenta personal, no a la casa: si te mudas, no se pierde.</p>' +
+      '<div class="acts"><button class="btn btn-teal btn-sm" data-act="useBill">Usar en mi factura</button><button class="btn btn-line btn-sm" data-act="withdraw">Retirar a mi cuenta</button><button class="btn btn-line btn-sm" data-act="donateBatt">💚 Donar 5 €</button></div></div>';
+    if (isProd()){
+      h += '<div class="card"><div class="switch"><span>🧳 Modo vacaciones<br><small style="font-weight:500;color:var(--muted)">Vierte a la red y suma saldo mientras no estás</small></span><input type="checkbox" id="vacSw2" '+(S.vacation ? 'checked' : '')+' aria-label="Modo vacaciones"></div></div>';
+    } else {
+      h += '<div class="card"><h4>¿Cómo se llena?</h4><p style="font-size:.88rem;color:var(--muted)">Si no consumes toda la cuota que tienes contratada, la energía sobrante se acredita aquí en euros y puedes usarla en tu factura o donarla a familias vulnerables.</p></div>';
+    }
+    h += '<div class="sec"><h3>Movimientos</h3></div>';
+    if (!S.history.length) h += '<div class="empty">Todavía no hay movimientos.</div>';
+    else h += '<div class="list">' + S.history.map(function(m){
+      return '<div class="item"><div><h5>'+esc(m.t)+'</h5></div><div class="price" style="color:'+(m.v >= 0 ? 'var(--ok)' : 'var(--danger)')+'">'+(m.v >= 0 ? '+' : '')+eur(m.v)+'</div></div>';
+    }).join('') + '</div>';
+    $('#v-batt').innerHTML = h;
+  }
+
+  function renderComm(){
+    var pct = Math.min(100, S.fund / 2000 * 100), h = '';
+    h += '<div class="card"><h4>💚 Fondo solidario del barrio</h4><div class="big">'+eur(S.fund)+'</div>' +
+      '<small style="color:var(--muted)">financia tarifas sociales para '+Math.floor(S.fund/25)+' familias vulnerables</small>' +
+      '<div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:600;color:var(--navy);margin:12px 0 5px"><span>Objetivo trimestral: 2.000 €</span><span>'+fmt(pct,0)+'%</span></div>' +
+      '<div class="progress"><div style="width:'+pct+'%"></div></div>' +
+      '<div class="acts"><button class="btn btn-sun btn-sm" data-act="donate">Donar un bono</button></div>' +
+      (S.myDonated ? '<p class="note">Tú has aportado '+eur(S.myDonated)+'. ¡Gracias!</p>' : '') + '</div>';
+    h += '<div class="stats">' +
+      '<div class="stat"><span>Familias en lista de espera</span><strong>'+S.waiting+'</strong><small>'+(isProd() ? 'esperan cuota de tu zona' : 'buscan cuota en tu radio')+'</small></div>' +
+      '<div class="stat"><span>Pérdidas de transporte</span><strong>≈ 0 %</strong><small>autoconsumo km 0</small></div></div>';
+    h += '<div class="sec"><h3>Actividad del barrio</h3></div><div class="list">' +
+      S.feed.map(function(f){ return '<div class="item"><div style="display:flex;gap:10px;align-items:center"><span style="font-size:1.4rem">'+f.ic+'</span><div><h5 style="font-weight:600">'+esc(f.t)+'</h5><small>'+f.time+'</small></div></div></div>'; }).join('') + '</div>';
+    $('#v-comm').innerHTML = h;
+  }
+
+  function renderMe(){
+    var u = S.user, h = '';
+    h += '<div class="card" style="display:flex;gap:14px;align-items:center"><div class="avatar">'+esc(u.name.charAt(0).toUpperCase())+'</div><div><h3>'+esc(u.name)+'</h3><span class="tag '+(isProd() ? 'sun' : '')+'">'+(isProd() ? '☀️ Productor' : '🏠 Consumidor')+'</span></div></div>';
+    h += '<div class="card"><div class="kv"><span>Dirección / CUPS</span><b>'+esc(u.address)+'</b></div>' +
+      '<div class="kv"><span>Radio de proximidad</span><b>2 km</b></div>' +
+      '<div class="kv"><span>Energía contratada</span><b>'+(isProd() ? '—' : fmt(contracted(),0)+' kWh/mes')+'</b></div>' +
+      '<div class="kv"><span>Saldo Batería Virtual</span><b>'+eur(S.battery.eur)+'</b></div></div>';
+    h += '<div class="sec"><h3>Gestiones</h3></div><div class="list">' +
+      '<button class="item" data-act="move" style="width:100%;text-align:left"><div><h5>📦 Me mudo</h5><small>Portabilidad energética en 3 pasos</small></div><span>›</span></button>' +
+      '<button class="item" data-act="switchRole" style="width:100%;text-align:left"><div><h5>🔄 Cambiar a '+(isProd() ? 'consumidor' : 'productor')+'</h5><small>Probar la otra vista de la app</small></div><span>›</span></button>' +
+      '<button class="item" data-act="logout" style="width:100%;text-align:left"><div><h5 style="color:var(--danger)">Cerrar sesión y reiniciar demo</h5><small>Borra los datos de este prototipo</small></div><span>›</span></button></div>';
+    h += '<p class="note" style="text-align:center;margin-top:18px">SolarShare · “La energía nos une”<br>Prototipo con datos simulados</p>';
+    $('#v-me').innerHTML = h;
+  }
+
+  function renderAll(){ renderHeader(); renderHome(); renderMap(); renderBatt(); renderComm(); renderMe(); tick(true); }
+
+  /* ================= Mapa: selección ================= */
+  var selected = null;
+  function pick(id){ selected = id; renderMap(); }
+
+  /* ================= Alquilar ================= */
+  var rentId = null;
+  function rentSheet(id){
+    var o = offerById(id); if (!o) return; rentId = id;
+    var max = Math.min(o.kwh, 200), min = Math.min(10, max), v = Math.min(50, max);
+    openSheet('<h3>'+esc(o.name)+'</h3><p style="color:var(--muted);font-size:.9rem">'+fmt(dist(o),2)+' km de tu casa · '+fmt(o.price,3)+' €/kWh · '+fmt(o.kwh,0)+' kWh libres</p>' +
+      '<label for="rentRange">Cuota mensual: <b id="rentV">'+v+'</b> kWh</label>' +
+      '<input type="range" id="rentRange" min="'+min+'" max="'+max+'" step="5" value="'+v+'">' +
+      '<div class="result" id="rentCalc"></div>' +
+      '<div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-line" style="flex:1" data-act="close">Cancelar</button><button class="btn btn-sun" style="flex:2" data-act="confirmRent">Confirmar alquiler</button></div>');
+    rentCalc();
+  }
+  function rentCalc(){
+    var o = offerById(rentId), r = $('#rentRange'); if (!o || !r) return;
+    var k = Number(r.value), cost = k * o.price, mk = k * MARKET;
+    $('#rentV').textContent = k;
+    $('#rentCalc').innerHTML = '<b>Pagarás:</b> '+eur(cost)+' al mes<br><b>Con tarifa convencional:</b> '+eur(mk)+'<br><b style="color:var(--ok)">Ahorras '+eur(mk-cost)+' al mes</b> · CO₂ evitado: '+fmt(k*CO2,0)+' kg';
+  }
+
+  /* ================= Publicar oferta (productor) ================= */
+  function publishSheet(){
+    var m = offerById('mine'), k = m ? m.kwh : 300, p = m ? m.price : 0.12;
+    openSheet('<h3>☀️ '+(m ? 'Editar mi oferta' : 'Publicar mi excedente')+'</h3><p style="color:var(--muted);font-size:.9rem">Los vecinos en un radio de 2 km podrán alquilar esta cuota.</p>' +
+      '<label for="pubK">Energía a ofertar (kWh/mes)</label><input type="number" id="pubK" min="10" max="2000" value="'+k+'">' +
+      '<label for="pubP">Precio (€/kWh) · máximo '+fmt(MARKET,2)+' €</label><input type="number" id="pubP" min="0.05" max="'+MARKET+'" step="0.005" value="'+p+'">' +
+      '<div class="result" id="pubCalc"></div>' +
+      '<div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-line" style="flex:1" data-act="close">Cancelar</button><button class="btn btn-sun" style="flex:2" data-act="confirmPub">Publicar</button></div>');
+    pubCalc();
+  }
+  function pubCalc(){
+    var k = Number($('#pubK').value), p = Number($('#pubP').value);
+    if (!(k > 0) || !(p > 0)){ $('#pubCalc').textContent = 'Introduce valores válidos.'; return; }
+    $('#pubCalc').innerHTML = 'Si se alquila todo: <b>'+eur(k*p*(1-COMMISSION))+'</b> netos al mes<br><small>(comisión SolarShare del 8% ya descontada)</small>';
+  }
+
+  /* ================= Mudanza ================= */
+  var mv = {step:1, date:'', dest:'zona', saved:[], res1:'', res2:'', res3:'', inherit:false, scanned:false, done:false};
+  function moveSheet(reset){
+    if (reset) mv = {step:1, date:new Date(Date.now() + 14*864e5).toISOString().slice(0,10), dest:'zona', saved:[], res1:'', res2:'', res3:'', inherit:false, scanned:false, done:false};
+    var dots = '<div class="steps">' + [1,2,3].map(function(i){ return '<i class="'+(mv.step === i ? 'on' : (mv.step > i ? 'done' : ''))+'"></i>'; }).join('') + '</div>';
+    var h = '<h3>📦 Portabilidad energética</h3><p style="color:var(--muted);font-size:.88rem">Mudarse sin papeleo: todo va vinculado al CUPS de tu contador inteligente.</p>' + dots;
+    if (mv.step === 1){
+      h += '<h4>1 · Baja programada y congelación de saldo</h4>' +
+        '<label for="mvDate">Fecha exacta de tu mudanza</label><input type="date" id="mvDate" value="'+mv.date+'">' +
+        '<label for="mvDest">¿A dónde te mudas?</label><select id="mvDest"><option value="zona"'+(mv.dest==='zona'?' selected':'')+'>Otro barrio con cobertura SolarShare</option><option value="fuera"'+(mv.dest==='fuera'?' selected':'')+'>Fuera de la zona de cobertura</option></select>' +
+        (mv.res1 ? '<div class="result">'+mv.res1+'</div><button class="btn btn-teal btn-block" style="margin-top:14px" data-act="mvNext1">Continuar →</button>' :
+        '<button class="btn btn-sun btn-block" style="margin-top:18px" data-act="mvGo1">Programar baja</button>');
+    } else if (mv.step === 2){
+      h += '<h4>2 · Liberación automática de la cuota</h4><div class="result">'+mv.res2+'</div>' +
+        '<button class="btn btn-teal btn-block" style="margin-top:14px" data-act="mvNext2">Continuar →</button>';
+    } else {
+      h += '<h4>3 · Alta “Enchufar y listo” de la nueva familia</h4>' +
+        '<div style="display:flex;gap:14px;align-items:flex-start;margin-top:10px"><div class="qr" id="mvQr"></div><div style="flex:1"><label for="mvCups" style="margin-top:0">Escanea el QR del nuevo contador o escribe la dirección</label><input type="text" id="mvCups" placeholder="C/ Girasol 12" maxlength="60"></div></div>' +
+        '<button class="btn btn-sun btn-block" style="margin-top:14px" data-act="mvScan"'+(mv.scanned ? ' disabled' : '')+'>Dar de alta</button>' +
+        (mv.res3 ? '<div class="result">'+mv.res3+'</div>' : '') +
+        (mv.scanned && mv.saved.length && !mv.inherit ? '<button class="btn btn-teal btn-block" style="margin-top:12px" data-act="mvInherit">Heredar contrato con un clic</button>' : '') +
+        ((mv.scanned && !mv.saved.length) || mv.inherit ? '<button class="btn btn-navy btn-block" style="margin-top:12px" data-act="close">Listo</button>' : '');
+    }
+    openSheet(h);
+    if (mv.step === 3){
+      var q = '';
+      for (var i = 0; i < 100; i++){
+        var r = Math.floor(i/10), c = i % 10, corner = (r<3&&c<3)||(r<3&&c>6)||(r>6&&c<3);
+        q += '<i class="'+(corner || ((i*7 + r*3) % 5 < 2) ? '' : 'o')+'"></i>';
+      }
+      $('#mvQr').innerHTML = q;
+    }
+  }
+
+  /* ================= Notificaciones ================= */
+  function notifSheet(){
+    var h = '<h3>🔔 Notificaciones</h3>' + (S.notifs.length ? S.notifs.map(function(n){
+      return '<div class="nitem'+(n.read ? '' : ' unread')+'"><b class="ic">'+n.ic+'</b><div><p>'+esc(n.t)+'</p><small>'+n.time+'</small></div></div>';
+    }).join('') : '<div class="empty">Sin notificaciones</div>');
+    S.notifs.forEach(function(n){ n.read = true; });
+    openSheet(h); save(); renderHeader();
+  }
+
+  /* ================= Saldo ================= */
+  function useBalance(a, label){
+    if (a <= 0 || S.battery.eur < a - 1e-9){ toast('Saldo insuficiente en tu Batería Virtual'); return false; }
+    S.battery.kwh = Math.max(0, S.battery.kwh * (1 - a / S.battery.eur));
+    S.battery.eur = Math.max(0, S.battery.eur - a);
+    addHist(label, -a); return true;
+  }
+
+  /* ================= Acciones (delegación) ================= */
+  document.addEventListener('click', function(e){
+    var m = e.target.closest('.mk');
+    if (m && m.closest('#map')){ pick(m.dataset.id); return; }
+    var a = e.target.closest('[data-act]');
+    if (!a){
+      var p = e.target.closest('[data-pick]'); if (p) pick(p.dataset.pick);
+      return;
+    }
+    var act = a.dataset.act, id = a.dataset.id, changed = true;
+    switch(act){
+      case 'goto': showTab(a.dataset.to); changed = false; break;
+      case 'close': closeSheet(); changed = false; break;
+      case 'rent': e.stopPropagation(); rentSheet(id); changed = false; break;
+      case 'confirmRent': {
+        var o = offerById(rentId), k = Number($('#rentRange').value);
+        if (!o || !(k > 0) || k > o.kwh){ toast('Cuota no disponible'); changed = false; break; }
+        o.kwh -= k;
+        var ex = S.contracts.filter(function(c){ return c.offerId === o.id; })[0];
+        if (ex) ex.kwh += k; else S.contracts.push({offerId:o.id, name:o.name, kwh:k, price:o.price});
+        S.feed.unshift({ic:'🏠', t:'Has alquilado '+k+' kWh a '+o.name, time:'ahora'});
+        notify('✅', 'Contrato activo: '+k+' kWh/mes de '+o.name+'.');
+        closeSheet(); toast('✅ Alquilados '+k+' kWh/mes'); showTab('home'); break;
+      }
+      case 'cancel': {
+        var c = S.contracts.filter(function(x){ return x.offerId === id; })[0];
+        if (c){
+          var of = offerById(c.offerId); if (of) of.kwh += c.kwh;
+          S.contracts = S.contracts.filter(function(x){ return x !== c; });
+          S.waiting += 1;
+          toast('Cuota liberada: otro vecino podrá alquilarla');
+        } break;
+      }
+      case 'publish': publishSheet(); changed = false; break;
+      case 'confirmPub': {
+        var kk = Number($('#pubK').value), pp = Number($('#pubP').value);
+        if (!(kk >= 10) || !(pp >= 0.05) || pp > MARKET){ toast('Precio entre 0,05 y '+fmt(MARKET,2)+' €/kWh y mínimo 10 kWh'); changed = false; break; }
+        var mine = offerById('mine');
+        if (mine){ mine.kwh = kk; mine.price = pp; } else S.offers.push({id:'mine', name:'Tu instalación', kwh:kk, price:pp, x:238, y:238});
+        S.feed.unshift({ic:'☀️', t:'Has publicado '+fmt(kk,0)+' kWh a '+fmt(pp,3)+' €/kWh', time:'ahora'});
+        notify('☀️', 'Tu oferta de '+fmt(kk,0)+' kWh ya es visible a menos de 2 km.');
+        closeSheet(); toast('☀️ Oferta publicada'); break;
+      }
+      case 'unpublish':
+        S.offers = S.offers.filter(function(x){ return x.id !== 'mine'; });
+        if (selected === 'mine') selected = null;
+        toast('Oferta retirada del mapa'); break;
+      case 'useBill': { var u = Math.min(15, S.battery.eur); if (useBalance(u, 'Descuento aplicado en factura')) toast('Descontados '+eur(u)+' de tu próxima factura'); else changed = false; break; }
+      case 'withdraw': { var w = S.battery.eur; if (useBalance(w, 'Retirada a cuenta bancaria')) toast('Enviados '+eur(w)+' a tu cuenta'); else changed = false; break; }
+      case 'donateBatt': if (useBalance(5, 'Donación al fondo solidario')){ S.fund += 5; S.myDonated += 5; toast('💚 Gracias: 5 € al fondo solidario'); } else changed = false; break;
+      case 'donate':
+        openSheet('<h3>💚 Donar un bono solidario</h3><p style="color:var(--muted);font-size:.9rem">Tu aportación financia tarifas sociales para familias vulnerables del barrio (cada 25 € = 1 familia).</p>' +
+          '<label for="donAmt">Importe (€)</label><input type="number" id="donAmt" min="1" max="500" value="10">' +
+          '<div style="display:flex;gap:10px;margin-top:16px"><button class="btn btn-line" style="flex:1" data-act="close">Cancelar</button><button class="btn btn-sun" style="flex:2" data-act="confirmDonate">Donar</button></div>');
+        changed = false; break;
+      case 'confirmDonate': {
+        var d = Number($('#donAmt').value);
+        if (!(d > 0) || d > 500){ toast('Importe entre 1 y 500 €'); changed = false; break; }
+        S.fund += d; S.myDonated += d;
+        S.feed.unshift({ic:'💚', t:'Has donado '+eur(d)+' al fondo solidario', time:'ahora'});
+        closeSheet(); toast('💚 Gracias por tu donación de '+eur(d)); break;
+      }
+      case 'switchRole': {
+        var np = isProd() ? 'consumidor' : 'productor';
+        S.user.role = np;
+        if (np === 'productor' && S.battery.eur === 0 && !S.history.length){ S.battery = {eur:38.4, kwh:214}; S.history = [{t:'Excedente registrado (vacaciones)', v:12.6},{t:'Descuento aplicado en factura', v:-8},{t:'Excedente registrado', v:6.4}]; }
+        toast(np === 'productor' ? '☀️ Vista de productor' : '🏠 Vista de consumidor'); showTab('home'); break;
+      }
+      case 'logout':
+        try{ localStorage.removeItem(KEY); }catch(er){}
+        S = fresh(); selected = null; $('#obName').value = ''; $('#obCups').value = ''; showScreen('onboard'); changed = false; return;
+      case 'move': moveSheet(true); changed = false; break;
+      case 'mvGo1': {
+        var date = $('#mvDate').value; if (!date){ toast('Indica la fecha de mudanza'); changed = false; break; }
+        mv.date = date; mv.dest = $('#mvDest').value;
+        var bal = S.battery.eur, lect = fmt(1000 + Math.random()*900, 1);
+        var dt = new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {day:'numeric', month:'long', year:'numeric'});
+        mv.res1 = '<b>✔ Baja programada el '+dt+'</b><ul><li>Lectura de cierre automática del contador ese día ('+lect+' kWh).</li>' +
+          '<li>Tu saldo de <b>'+eur(bal)+'</b> no se pierde: va ligado a tu cuenta, no a la casa.</li>' +
+          (mv.dest === 'zona' ? '<li>Te mudas a un barrio con cobertura: <b>el saldo se va contigo</b>.</li>' : '<li>Te mudas fuera de zona: la app te <b>liquida '+eur(bal)+'</b> en tu cuenta bancaria.</li>') + '</ul>';
+        if (mv.dest === 'fuera' && bal > 0){ addHist('Liquidación por mudanza fuera de zona', -bal); S.battery = {eur:0, kwh:0}; }
+        moveSheet(false); break;
+      }
+      case 'mvNext1': {
+        mv.saved = S.contracts.map(function(c){ return {offerId:c.offerId, name:c.name, kwh:c.kwh, price:c.price}; });
+        if (mv.saved.length){
+          var tot = 0; mv.saved.forEach(function(c){ var of2 = offerById(c.offerId); if (of2) of2.kwh += c.kwh; tot += c.kwh; });
+          S.contracts = []; var n = Math.floor(4 + Math.random()*9); S.waiting += n;
+          mv.res2 = '<b>Cuota liberada</b><ul><li>Se han liberado <b>'+fmt(tot,0)+' kWh/mes</b> en el nodo del barrio (radio 2 km).</li><li>Se ha avisado a <b>'+n+' familias</b> de la lista de espera y la cuota queda visible en el mapa.</li></ul>';
+          S.feed.unshift({ic:'📦', t:'Se han liberado '+fmt(tot,0)+' kWh por una mudanza', time:'ahora'});
+        } else mv.res2 = '<b>No tenías cuotas activas</b><p>No hay ninguna participación que liberar en tu nodo.</p>';
+        mv.step = 2; moveSheet(false); break;
+      }
+      case 'mvNext2': mv.step = 3; moveSheet(false); changed = false; break;
+      case 'mvScan': {
+        var v = ($('#mvCups') ? $('#mvCups').value.trim() : '');
+        mv.scanned = true;
+        mv.res3 = '<b>✔ Contador vinculado'+(v ? ' ('+esc(v)+')' : ' mediante código QR')+'</b>' +
+          (mv.saved.length ? '<p>El inquilino anterior tenía un acuerdo con <b>'+esc(mv.saved[0].name)+'</b>. Puedes heredarlo con un solo clic, sin cortes de luz.</p>' : '<p>Sin contrato previo que heredar. Explora el mapa para tu primera cuota.</p>');
+        moveSheet(false); changed = false; break;
+      }
+      case 'mvInherit':
+        mv.saved.forEach(function(c){
+          var of3 = offerById(c.offerId);
+          if (of3 && of3.kwh >= c.kwh){ of3.kwh -= c.kwh; S.contracts.push(c); }
+        });
+        mv.inherit = true; mv.saved = [];
+        mv.res3 = '<b>🎉 ¡Contrato heredado!</b><p>La nueva familia disfruta del ahorro desde el primer minuto, sin cortes de luz ni papeleo.</p>';
+        notify('🎉', 'Contrato energético heredado con un clic.');
+        moveSheet(false); break;
+      default: changed = false;
+    }
+    if (changed){ save(); renderAll(); }
+  });
+
+  document.addEventListener('input', function(e){
+    if (e.target.id === 'rentRange') rentCalc();
+    if (e.target.id === 'pubK' || e.target.id === 'pubP') pubCalc();
+  });
+  document.addEventListener('change', function(e){
+    if (e.target.id === 'vacSw' || e.target.id === 'vacSw2'){
+      S.vacation = e.target.checked;
+      toast(S.vacation ? '🧳 Modo vacaciones activado' : 'Modo vacaciones desactivado');
+      save(); renderAll();
+    }
+  });
+  $('#bellBtn').addEventListener('click', notifSheet);
+
+  /* ================= Simulación en directo ================= */
+  function tick(first){
+    if (!S.user || !$('#liveKw')) return;
+    var h = nowH(), s = solar(h), power, note;
+    if (!isProd()){
+      var k = contracted();
+      power = k ? (k / 90) * 0.55 * s * (0.92 + Math.random()*0.16) : 0;
+      note = s > 0 ? 'sol en tu barrio' : 'de noche: cuota acreditada';
+      if (!first){ S.dayKwh += power * 2/3600; }
+      var avg = k ? S.contracts.reduce(function(a,c){ return a + c.price*c.kwh; }, 0) / k : MARKET;
+      if ($('#dayKwh')) $('#dayKwh').textContent = fmt(S.dayKwh, 2) + ' kWh';
+      if ($('#daySave')) $('#daySave').textContent = eur(S.dayKwh * (MARKET - avg));
+    } else {
+      power = 4.2 * s * (0.92 + Math.random()*0.16);
+      note = S.vacation ? 'vertiendo a la red' : (s > 0 ? 'produciendo' : 'sin sol');
+      if (!first){
+        if (S.vacation && s > 0){ S.battery.eur += 0.04; S.battery.kwh += 0.33; if (Math.random() < .2){ renderBatt(); } }
+        if (offerById('mine') && s > 0 && Math.random() < 0.05){
+          var mine = offerById('mine');
+          if (mine.kwh >= 5){
+            mine.kwh -= 5; S.sharedKwh += 5; S.feed.unshift({ic:'🏠', t:'Una familia ha alquilado 5 kWh de tu oferta', time:'ahora'});
+            notify('💶', 'Una familia vecina ha alquilado 5 kWh de tu excedente.');
+            save(); renderAll(); return;
+          }
+        }
+        if ($('#pShared')) $('#pShared').textContent = fmt(S.sharedKwh, 0);
+      }
+    }
+    $('#liveKw').textContent = fmt(power, 2) + ' kW';
+    $('#liveNote').textContent = note;
+  }
+  setInterval(function(){ tick(false); if (S.user) save(); }, 2000);
+
+  /* ================= Inicio ================= */
+  if (S.user) enter(); else showScreen('onboard');
+})();
+</script>
+</body>
+</html>
